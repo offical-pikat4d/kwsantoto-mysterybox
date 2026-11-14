@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eef1f7">
+  <title>Official Claim System — PIKAT4D</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="https://i.imgur.com/lnqD0pb.png">
+ <link rel="icon" type="image/png" sizes="16x16" href="https://i.imgur.com/lnqD0pb.png">
+ <link rel="shortcut icon" href="https://i.imgur.com/lnqD0pb.png">
+  <link rel="preconnect" href="http://inikawasan.mom/">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #f1eeee;
+      --panel: #f1eeee;
+      --ink: #303342;
+      --muted: #7d7a80;
+      --accent: #d63a2f;
+      --accent-strong: #a8231b;
+      --accent-light: #ff9a8d;
+      --line: #e4dddd;
+      --raised: 8px 8px 20px #d6d0d0, -8px -8px 20px #fff;
+      --inset: inset 4px 4px 9px #dad3d3, inset -4px -4px 9px #fff;
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      min-width: 320px;
+      margin: 0;
+      background:
+        radial-gradient(ellipse at 85% 4%, rgba(245, 204, 139, .2), transparent 28rem),
+        var(--page);
+      color: var(--ink);
+      font: 15px/1.6 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    button, input { font: inherit; }
+    button:focus-visible, a:focus-visible, input:focus-visible {
+      outline: 3px solid rgba(189, 116, 26, .48);
+      outline-offset: 3px;
+    }
+    .topbar {
+      position: sticky;
+      z-index: 20;
+      top: 0;
+      display: flex;
+      height: 76px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 22px;
+      border-bottom: 1px solid rgba(255,255,255,.82);
+      background: rgba(238, 241, 247, .86);
+      box-shadow: 0 5px 18px rgba(48, 51, 66, .05);
+      backdrop-filter: blur(16px);
+    }
+    .topbar-content {
+      display: flex;
+      width: min(100%, 1120px);
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+    .brand img {
+      width: auto;
+      max-width: 174px;
+      height: 46px;
+      object-fit: contain;
+      filter: drop-shadow(0 5px 9px rgba(111, 77, 29, .12));
+    }
+    .menu-button, .close-nav {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      border: 0;
+      border-radius: 14px;
+      background: var(--panel);
+      box-shadow: var(--raised);
+      color: var(--accent-strong);
+      cursor: pointer;
+    }
+    .menu-button { position: absolute; left: max(20px, calc((100% - 1120px) / 2)); }
+    .menu-button span, .menu-button span::before, .menu-button span::after {
+      display: block;
+      width: 19px;
+      height: 2px;
+      border-radius: 2px;
+      background: currentColor;
+      content: "";
+    }
+    .menu-button span { position: relative; }
+    .menu-button span::before { position: absolute; top: -6px; }
+    .menu-button span::after { position: absolute; top: 6px; }
+    .menu-scrim {
+      position: fixed;
+      z-index: 29;
+      background: rgba(35, 38, 50, .28);
+      inset: 0;
+    }
+    .menu-scrim[hidden] { display: none; }
+    .side-menu {
+      position: fixed;
+      z-index: 30;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: min(310px, 86vw);
+      padding: 24px;
+      border-right: 1px solid rgba(255,255,255,.9);
+      border-radius: 0 24px 24px 0;
+      background: var(--panel);
+      box-shadow: 12px 0 30px rgba(40, 43, 58, .12);
+      transform: translateX(-105%);
+      transition: transform .28s ease;
+    }
+    .side-menu.active { transform: translateX(0); }
+    .drawer-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
+    .drawer-title { font-weight: 800; }
+    .close-nav { font-size: 24px; }
+    .nav-label { margin: 0 0 10px 8px; color: #969caf; font-size: 10px; font-weight: 800; letter-spacing: 1.4px; }
+    .side-menu a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 7px 0;
+      padding: 13px 14px;
+      border-radius: 13px;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: .2s ease;
+    }
+    .side-menu a:hover { background: #f5f6fa; box-shadow: var(--inset); color: var(--accent-strong); }
+    .nav-icon { color: var(--accent); font-size: 17px; }
+    .page {
+      width: min(100% - 36px, 900px);
+      margin: 28px auto 54px;
+    }
+    .intro { margin: 0 0 18px; text-align: center; }
+    .eyebrow {
+      margin: 0 0 5px;
+      color: var(--accent-strong);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+    }
+    h1 { margin: 0; font-size: clamp(24px, 4vw, 34px); letter-spacing: -.8px; line-height: 1.2; }
+    .intro-copy { max-width: 580px; margin: 9px auto 0; color: var(--muted); font-size: 13px; }
+    .marquee-container {
+      overflow: hidden;
+      width: min(100%, 620px);
+      margin: 0 auto 18px;
+      padding: 10px 0;
+      border: 1px solid #e1d3bd;
+      border-radius: 999px;
+      background: #f4ede2;
+      box-shadow: var(--inset);
+      white-space: nowrap;
+    }
+    .marquee-text {
+      display: inline-block;
+      padding-left: 100%;
+      color: #875916;
+      font-size: 12px;
+      font-weight: 650;
+      animation: marquee 23s linear infinite;
+    }
+    @keyframes marquee { to { transform: translateX(-100%); } }
+    .slider-container {
+      overflow: hidden;
+      width: min(100%, 620px);
+      margin: 0 auto 22px;
+      border: 1px solid rgba(255,255,255,.9);
+      border-radius: 19px;
+      background: var(--panel);
+      box-shadow: var(--raised);
+    }
+    .slider-wrapper { display: flex; transition: transform .65s cubic-bezier(.22,.7,.25,1); }
+    .slider-wrapper img {
+     display: block;
+     flex: 0 0 100%;
+     width: 100%;
+     height: auto;
+     object-fit: contain;
+}
+    .card {
+      width: min(100%, 620px);
+      margin: 0 auto 20px;
+      padding: clamp(20px, 5vw, 32px);
+      border: 1px solid rgba(255,255,255,.88);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--raised);
+    }
+    .claim-card { text-align: center; }
+    .section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; text-align: left; }
+    .section-heading h2 { margin: 0; font-size: 18px; letter-spacing: -.3px; }
+    .section-heading p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    .soft-icon {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      flex: 0 0 auto;
+      place-items: center;
+      border-radius: 14px;
+      background: var(--panel);
+      box-shadow: var(--raised);
+      color: var(--accent);
+      font-size: 19px;
+    }
+    .quota-box { margin-top: 20px; padding: 14px 16px; border-radius: 15px; background: #f0f2f7; box-shadow: var(--inset); }
+    .quota-meta { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 8px; color: var(--accent-strong); font-size: 11px; font-weight: 800; }
+    .quota-meta span:last-child { color: var(--muted); }
+    .quota-track { height: 8px; overflow: hidden; border-radius: 99px; background: #dfe3eb; }
+    .quota-fill { width: 33.333%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--accent-light)); }
+    .mystery-box-area {
+      display: grid;
+      min-height: 190px;
+      margin: 20px 0;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 18px;
+      background: radial-gradient(ellipse, #f8e9cf 0, #f0f1f6 68%);
+      box-shadow: var(--inset);
+    }
+    .box-img {
+      width: 150px;
+      max-height: 165px;
+      object-fit: contain;
+      filter: drop-shadow(0 12px 12px rgba(133, 87, 30, .2));
+      cursor: pointer;
+      transition: transform .2s ease;
+    }
+    .box-img:hover { transform: translateY(-3px); }
+    .box-img.shake { animation: box-shake .2s infinite; }
+    @keyframes box-shake {
+      0%, 100% { transform: rotate(0); }
+      25% { transform: rotate(-3deg); }
+      75% { transform: rotate(3deg); }
+    }
+    .field-label { display: block; margin-bottom: 7px; text-align: left; font-size: 12px; font-weight: 750; }
+    input {
+      width: 100%;
+      min-height: 50px;
+      margin-bottom: 14px;
+      padding: 13px 16px;
+      border: 1px solid #dfe3ec;
+      border-radius: 13px;
+      background: #f1f3f8;
+      box-shadow: var(--inset);
+      color: var(--ink);
+      text-align: left;
+    }
+    input::placeholder { color: #969daf; }
+    .main-btn {
+      width: 100%;
+      min-height: 52px;
+      padding: 13px 18px;
+      border: 0;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #c78632, #a86212);
+      box-shadow: 0 8px 17px rgba(159, 99, 22, .23);
+      color: white;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 850;
+      letter-spacing: .45px;
+      transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+    }
+    .main-btn:hover:not(:disabled) { box-shadow: 0 11px 20px rgba(159, 99, 22, .29); transform: translateY(-1px); }
+    .main-btn:active:not(:disabled) { transform: translateY(1px); }
+    .main-btn:disabled { cursor: wait; opacity: .7; }
+    #statusMsg { min-height: 22px; margin-top: 12px; font-size: 12px; font-weight: 700; }
+    .history-card { padding: 22px; }
+    .history-heading { padding-bottom: 13px; border-bottom: 1px solid var(--line); }
+    .history-scroll { max-height: 250px; overflow: auto; margin-top: 10px; }
+    .history-scroll::-webkit-scrollbar { width: 5px; }
+    .history-scroll::-webkit-scrollbar-thumb { border-radius: 99px; background: #c58a43; }
+    #hTable { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+    #hTable td { padding: 12px 7px; border-bottom: 1px solid var(--line); color: #636b7d; }
+    #hTable td:last-child { color: var(--accent-strong); font-weight: 750; text-align: right; white-space: nowrap; }
+    .footer-banner { overflow: hidden; width: min(100%, 620px); margin: 0 auto 25px; border-radius: 18px; box-shadow: var(--raised); }
+    .footer-banner img { display: block; width: 100%; height: auto; }
+    .page-footer { padding: 0 12px; color: var(--muted); font-size: 11px; text-align: center; }
+    .fab-wa {
+      position: fixed;
+      z-index: 15;
+      right: max(18px, calc((100vw - 1060px) / 2));
+      bottom: max(18px, env(safe-area-inset-bottom));
+      display: grid;
+      width: 54px;
+      height: 54px;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.8);
+      border-radius: 18px;
+      background: #e8f4ed;
+      box-shadow: var(--raised);
+      transition: transform .2s ease;
+    }
+    .fab-wa:hover { transform: translateY(-3px); }
+    .fab-wa img { width: 33px; height: 33px; }
+
+    /* ===== EFEK TOMBOL MELAYANG (WA, Prediksi Togel, Prediksi Bola) ===== */
+    .fab-wa { --glow: 37, 211, 102; animation: fab-glow 2.6s ease-in-out infinite; }
+    .fab-togel { --glow: 189, 116, 26; animation-delay: .5s; }
+    .fab-bola { --glow: 59, 130, 246; animation-delay: 1s; }
+
+    /* cincin pulse yang membesar lalu memudar */
+    .fab-wa::before {
+      position: absolute;
+      border: 2px solid rgba(var(--glow), .65);
+      border-radius: inherit;
+      content: "";
+      inset: -1px;
+      pointer-events: none;
+      animation: fab-ring 2.4s ease-out infinite;
+    }
+    .fab-togel::before { animation-delay: .5s; }
+    .fab-bola::before { animation-delay: 1s; }
+
+    /* ikon bergoyang berkala seperti notifikasi */
+    .fab-wa img { animation: fab-wiggle 3.6s ease-in-out infinite; transform-origin: 50% 60%; }
+    .fab-togel img { animation-delay: .6s; }
+    .fab-bola img { animation-delay: 1.2s; }
+
+    /* label teks saat hover / fokus */
+    .fab-wa::after {
+      position: absolute;
+      top: 50%;
+      right: calc(100% + 12px);
+      padding: 7px 12px;
+      border-radius: 11px;
+      background: var(--panel);
+      box-shadow: var(--raised);
+      color: var(--accent-strong);
+      content: attr(data-label);
+      font-size: 11px;
+      font-weight: 800;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(8px, -50%);
+      transition: opacity .2s ease, transform .2s ease;
+      white-space: nowrap;
+    }
+    .fab-wa:hover, .fab-wa:focus-visible { transform: translateY(-4px) scale(1.08); }
+    .fab-wa:hover::after, .fab-wa:focus-visible::after { opacity: 1; transform: translate(0, -50%); }
+    .fab-wa:hover img { animation-play-state: paused; }
+
+    @keyframes fab-ring {
+      0% { opacity: .85; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.6); }
+    }
+    @keyframes fab-glow {
+      0%, 100% { box-shadow: var(--raised), 0 0 0 rgba(var(--glow), 0); }
+      50% { box-shadow: var(--raised), 0 0 20px rgba(var(--glow), .55); }
+    }
+    @keyframes fab-wiggle {
+      0%, 55%, 100% { transform: rotate(0) scale(1); }
+      60% { transform: rotate(-14deg) scale(1.1); }
+      68% { transform: rotate(12deg) scale(1.1); }
+      76% { transform: rotate(-8deg) scale(1.05); }
+      84% { transform: rotate(5deg) scale(1.02); }
+      92% { transform: rotate(0) scale(1); }
+    }
+    /* ===== AKHIR EFEK TOMBOL ===== */
+
+    #notif-container { position: fixed; z-index: 25; bottom: 18px; left: 18px; width: min(280px, calc(100vw - 95px)); pointer-events: none; }
+    .live-notif {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      margin-top: 9px;
+      padding: 11px 13px;
+      border: 1px solid rgba(255,255,255,.9);
+      border-radius: 15px;
+      background: rgba(238,241,247,.95);
+      box-shadow: var(--raised);
+      color: var(--ink);
+      font-size: 11px;
+      transition: opacity .45s ease, transform .45s ease;
+      backdrop-filter: blur(10px);
+    }
+    .live-notif > div:first-child { padding: 7px; border-radius: 10px; background: #f3e7d6; }
+    .live-notif span { color: var(--accent-strong); font-weight: 750; }
+    .modal-overlay {
+      position: fixed;
+      z-index: 50;
+      display: none;
+      padding: 20px;
+      background: rgba(39, 42, 54, .38);
+      backdrop-filter: blur(8px);
+      inset: 0;
+      place-items: center;
+    }
+    .modal-overlay[aria-hidden="false"] { display: grid; }
+    .modal-box {
+      position: relative;
+      width: min(100%, 390px);
+      padding: 36px 26px 26px;
+      border: 1px solid rgba(255,255,255,.88);
+      border-radius: 25px;
+      background: var(--panel);
+      box-shadow: 14px 14px 32px rgba(33, 36, 48, .2), -8px -8px 23px rgba(255,255,255,.75);
+      text-align: center;
+    }
+    .close-modal {
+      position: absolute;
+      top: 13px;
+      right: 13px;
+      display: grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      border: 0;
+      border-radius: 12px;
+      background: var(--panel);
+      box-shadow: var(--raised);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 22px;
+    }
+    .modal-gift { margin: 0 0 8px; font-size: 42px; }
+    .modal-box h2 { margin: 0; color: var(--accent-strong); font-size: 22px; }
+    #prizeAmount { margin: 12px 0; color: #a76b1e; font-size: clamp(27px, 8vw, 34px); font-weight: 850; }
+    .modal-box p { margin: 8px 0 20px; color: var(--muted); font-size: 13px; line-height: 1.7; }
+    .chat-btn {
+      display: block;
+      padding: 14px 16px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, #c78632, #a86212);
+      box-shadow: 0 8px 17px rgba(159, 99, 22, .22);
+      color: white;
+      font-size: 12px;
+      font-weight: 850;
+      text-decoration: none;
+    }
+    @media (max-width: 600px) {
+      .topbar { height: 66px; padding: 0 14px; }
+      .menu-button { left: 14px; width: 40px; height: 40px; }
+      .brand img { max-width: 142px; height: 39px; }
+      .page { width: min(100% - 28px, 480px); margin-top: 23px; }
+      .intro-copy { font-size: 12px; }
+      .slider-wrapper img {
+     display: block;
+     flex: 0 0 100%;
+     width: 100%;
+     height: auto;
+     object-fit: contain;
+}
+      .mystery-box-area { min-height: 170px; }
+      .box-img { width: 132px; max-height: 150px; }
+      #notif-container { bottom: 12px; left: 12px; width: min(255px, calc(100vw - 84px)); }
+      .fab-wa { right: 12px; bottom: 12px; width: 48px; height: 48px; border-radius: 16px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+      .fab-wa::before { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="notif-container" aria-live="polite" aria-label="Notifikasi"></div>
+  <div class="topbar">
+    <div class="topbar-content">
+      <button class="menu-button" id="menuButton" type="button" aria-label="Buka menu" aria-expanded="false" aria-controls="sideMenu"><span></span></button>
+      <a class="brand" href="#beranda" aria-label="KAWASANTOTO, ke beranda">
+        <img src="https://inikawasan.mom/images/logo.png" alt="KAWASANTOTO">
+      </a>
+    </div>
+  </div>
+  <div class="menu-scrim" id="menuScrim" hidden></div>
+  <nav class="side-menu" id="sideMenu" aria-label="Menu utama" aria-hidden="true">
+    <div class="drawer-head">
+      <span class="drawer-title">Navigasi</span>
+      <button class="close-nav" id="closeNav" type="button" aria-label="Tutup menu">×</button>
+    </div>
+    <p class="nav-label">MENU UTAMA</p>
+    <a href="http://inikawasan.mom//"><span class="nav-icon" aria-hidden="true">⌂</span>Lobby Utama</a>
+    <a href="http://inikawasan.mom//"><span class="nav-icon" aria-hidden="true">＋</span>Daftar Akun</a>
+    <a href="#riwayat"><span class="nav-icon" aria-hidden="true">▤</span>Riwayat Klaim</a>
+    <a href="https://ertepe.luvtoberi.com/index.html?rtp=kawasantoto"><span class="nav-icon" aria-hidden="true">◷</span>RTP Live</a>
+  </nav>
+
+  <main class="page" id="beranda">
+    <header class="intro">
+      <p class="eyebrow">Official Claim System</p>
+      <h1>Mystery Box</h1>
+      <p class="intro-copy">Masukkan User ID Anda dan buka kotak keberuntungan. Ikuti petunjuk di halaman ini untuk melanjutkan klaim.</p>
+    </header>
+
+    <div class="marquee-container" aria-label="Informasi Mystery Box">
+      <div class="marquee-text">KawasanTOTO — Mystery Box! Masukkan ID Anda dan buka kotak keberuntungan Anda sekarang. Hadiah menarik menunggu setiap harinya!</div>
+    </div>
+
+    <section class="slider-container" aria-label="Galeri promosi">
+      <div class="slider-wrapper" id="slider">
+        <img src="https://img.viva88athenae.com/events/bocil-mahjong-26.jpg" alt="Promosi KAWASANTOTO 1">
+        <img src="https://img.viva88athenae.com/events/pg-okt-26.jpg" alt="Promosi KAWASANTOTO 2">
+        <img src="https://img.viva88athenae.com/events/mgw-oct-26.png" alt="Promosi KAWASANTOTO 3">
+        <img src="https://img.viva88athenae.com/events/pp-oktober-26.jpg" alt="Promosi KAWASANTOTO 4">
+        <img src="https://img.viva88athenae.com/events/fs-oct-26.jpg" alt="Promosi KAWASANTOTO 5">
+        <img src="https://img.viva88athenae.com/events/jg-money-meteor-6.jpg" alt="Promosi KAWASANTOTO 6">
+    </section>
+
+    <section class="card claim-card" aria-labelledby="claimTitle">
+      <div class="section-heading">
+        <div>
+          <h2 id="claimTitle">Buka Mystery Box</h2>
+          <p>Masukkan User ID untuk memulai proses klaim.</p>
+        </div>
+        <span class="soft-icon" aria-hidden="true">✦</span>
+      </div>
+      <div class="quota-box">
+        <div class="quota-meta"><span>🔥 SLOT MYSTERY BOX</span><span id="qCount">5/15 Tersedia</span></div>
+        <div class="quota-track" role="progressbar" aria-label="Slot tersedia" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100">
+          <div class="quota-fill" id="qBar"></div>
+        </div>
+      </div>
+      <div class="mystery-box-area">
+        <img src="https://i.imgur.com/cPo9fGr.png" class="box-img" id="boxIcon" alt="Mystery Box" tabindex="0">
+      </div>
+      <label class="field-label" for="userId">User ID Anda</label>
+      <input type="text" id="userId" placeholder="Masukkan User ID Anda" maxlength="40" autocomplete="username" aria-describedby="statusMsg">
+      <button class="main-btn" id="claimBtn" type="button">BUKA MYSTERY BOX</button>
+      <div id="statusMsg" role="status" aria-live="polite"></div>
+    </section>
+
+    <section class="card history-card" id="riwayat" aria-labelledby="historyTitle">
+      <div class="section-heading history-heading">
+        <div>
+          <h2 id="historyTitle">20 Transaksi Terakhir</h2>
+          <p>Riwayat klaim terbaru.</p>
+        </div>
+        <span class="soft-icon" aria-hidden="true">▤</span>
+      </div>
+      <div class="history-scroll" tabindex="0" aria-label="Daftar transaksi terbaru">
+        <table id="hTable" aria-label="Riwayat klaim"></table>
+      </div>
+    </section>
+
+    <div class="footer-banner">
+      <img src="https://i.imgur.com/8rBhMEk.png" alt="Informasi KAWASANTOTO" loading="lazy">
+    </div>
+    <footer class="page-footer">KAWASANTOTO · Silakan hubungi layanan pelanggan melalui tautan yang tersedia.</footer>
+  </main>
+
+  <a href="http://inikawasan.mom/" class="fab-wa fab-cs" data-label="Live Chat" aria-label="Buka layanan KAWASANTOTO">
+    <img src="https://img.icons8.com/color/38/whatsapp--v1.png" alt="">
+  </a>
+
+  <!-- Tombol RTP Gacor Baru di Pojok Kanan Bawah di atas Tombol prediksi bola -->
+  <a href ="https://ertepe.luvtoberi.com/index.html?rtp=kawasantoto" class="fab-wa fab-bola" data-label="RTP Live" aria-label="RTP Live PIKAT4D" style="bottom: 80px;">
+    <img src="https://i.imgur.com/Gcn6J87.png" alt="RTP Live">
+  </a>
+
+  <div class="modal-overlay" id="successModal" aria-hidden="true">
+    <section class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDescription">
+      <button class="close-modal" id="closeModalButton" type="button" aria-label="Tutup">×</button>
+      <div class="modal-gift" aria-hidden="true">🎁</div>
+      <h2 id="modalTitle">BOX TERBUKA!</h2>
+      <div id="prizeAmount">IDR 0</div>
+      <p id="modalDescription">Selamat untuk <b id="displayUser">USER</b>! Screenshot pesan ini dan berikan kepada Customer Service.</p>
+      <a href="http://inikawasan.mom/" class="chat-btn">KLAIM KE LIVE CHAT</a>
+    </section>
+  </div>
+
+  <script>
+    const menuButton = document.getElementById("menuButton");
+    const sideMenu = document.getElementById("sideMenu");
+    const menuScrim = document.getElementById("menuScrim");
+
+    function toggleMenu(forceOpen) {
+      const isOpen = typeof forceOpen === "boolean" ? forceOpen : !sideMenu.classList.contains("active");
+      sideMenu.classList.toggle("active", isOpen);
+      sideMenu.setAttribute("aria-hidden", String(!isOpen));
+      menuScrim.hidden = !isOpen;
+      menuButton.setAttribute("aria-expanded", String(isOpen));
+      if (isOpen) document.getElementById("closeNav").focus();
+      else menuButton.focus();
+    }
+
+    menuButton.addEventListener("click", () => toggleMenu());
+    document.getElementById("closeNav").addEventListener("click", () => toggleMenu(false));
+    menuScrim.addEventListener("click", () => toggleMenu(false));
+    sideMenu.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => toggleMenu(false));
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && sideMenu.classList.contains("active")) toggleMenu(false);
+    });
+
+    function closeModal() {
+      document.getElementById("successModal").setAttribute("aria-hidden", "true");
+      location.reload();
+    }
+
+    document.getElementById("closeModalButton").addEventListener("click", closeModal);
+    let sIdx = 0;
+    const totalImages = 8;
+    window.setInterval(() => {
+      sIdx = (sIdx + 1) % totalImages;
+      const slider = document.getElementById("slider");
+      if (slider) slider.style.transform = `translateX(-${sIdx * 100}%)`;
+    }, 4000);
+
+    function showNotif() {
+      const container = document.getElementById("notif-container");
+      const uPrefix = ["WIN", "BOSS", "JP", "VIP", "MEGA", "LUCKY"];
+      const user = uPrefix[Math.floor(Math.random() * uPrefix.length)] + Math.floor(Math.random() * 89 + 10) + "***";
+      const amount = (Math.floor(Math.random() * (300 - 20 + 1)) + 20) * 1000;
+
+      const notification = document.createElement("div");
+      notification.className = "live-notif";
+      const icon = document.createElement("div");
+      icon.setAttribute("aria-hidden", "true");
+      icon.textContent = "🎁";
+      const message = document.createElement("div");
+      const name = document.createElement("b");
+      name.textContent = user;
+      const amountLine = document.createElement("span");
+      amountLine.textContent = "IDR " + amount.toLocaleString("id-ID");
+      message.append(name, document.createTextNode(" Box Terbuka!"), document.createElement("br"), amountLine);
+      notification.append(icon, message);
+      container.appendChild(notification);
+
+      const table = document.getElementById("hTable");
+      if (table) {
+        const row = table.insertRow(0);
+        const userCell = row.insertCell(0);
+        const amountCell = row.insertCell(1);
+        userCell.textContent = user;
+        amountCell.textContent = "IDR " + amount.toLocaleString("id-ID");
+        if (table.rows.length > 20) table.deleteRow(20);
+      }
+
+      window.setTimeout(() => {
+        notification.style.opacity = "0";
+        notification.style.transform = "translateY(6px)";
+        window.setTimeout(() => notification.remove(), 500);
+      }, 4000);
+    }
+
+    window.setInterval(showNotif, 6000);
+    for (let i = 0; i < 8; i++) window.setTimeout(showNotif, i * 600);
+
+    document.getElementById("claimBtn").addEventListener("click", processClaim);
+    document.getElementById("userId").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") processClaim();
+    });
+
+    function processClaim() {
+      const input = document.getElementById("userId");
+      const idValue = input.value.trim().toUpperCase();
+      const button = document.getElementById("claimBtn");
+      const box = document.getElementById("boxIcon");
+      const status = document.getElementById("statusMsg");
+
+      if (!idValue || idValue.length < 3) {
+        status.innerHTML = "<span style='color:#b33f55'>Masukkan User ID yang valid!</span>";
+        input.focus();
+        return;
+      }
+
+      const hasClaimed = localStorage.getItem("claim_" + idValue);
+      if (hasClaimed) {
+        status.textContent = "MAAF! ID " + idValue + " SUDAH PERNAH KLAIM.";
+        status.style.color = "#b33f55";
+        return;
+      }
+
+      button.textContent = "MEMBUKA BOX...";
+      button.disabled = true;
+      box.classList.add("shake");
+      status.textContent = "";
+
+      window.setTimeout(() => {
+        localStorage.setItem("claim_" + idValue, "true");
+        const randomPrize = (Math.floor(Math.random() * (500 - 25 + 1)) + 25) * 1000;
+        document.getElementById("prizeAmount").textContent = "IDR " + randomPrize.toLocaleString("id-ID");
+        if (typeof confetti === "function") {
+          confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ["#bd741a", "#ffffff"] });
+        }
+        document.getElementById("displayUser").textContent = idValue;
+        const modal = document.getElementById("successModal");
+        modal.setAttribute("aria-hidden", "false");
+        box.classList.remove("shake");
+        button.textContent = "KLAIM BERHASIL";
+      }, 2500);
+    }
+  </script>
+</body>
+</html>
